@@ -2,10 +2,21 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import type { Session, Agent } from '../types.ts'
 import { AgentRow } from './AgentRow.tsx'
+import { theme, COLUMN_WIDTHS } from './theme.ts'
 
 interface SessionTreeProps {
   sessions: Session[]
   showCompleted: boolean
+}
+
+function formatStartTime(date: Date): string {
+  const yy = date.getFullYear().toString().slice(2)
+  const mo = (date.getMonth() + 1).toString().padStart(2, '0')
+  const dd = date.getDate().toString().padStart(2, '0')
+  const h = date.getHours().toString().padStart(2, '0')
+  const m = date.getMinutes().toString().padStart(2, '0')
+  const s = date.getSeconds().toString().padStart(2, '0')
+  return `${yy}${mo}${dd} ${h}:${m}:${s}`
 }
 
 function getAgentTree(session: Session): Agent[] {
@@ -43,11 +54,22 @@ export function SessionTree({ sessions, showCompleted }: SessionTreeProps) {
 
   return (
     <Box flexDirection="column">
+      {/* Column header */}
+      <Box marginBottom={0}>
+        <Text> </Text>
+        <Text color={theme.colors.columnHeader} dimColor>{''.padEnd(COLUMN_WIDTHS.icon)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{'AGENT'.padEnd(COLUMN_WIDTHS.name)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{' ' + 'MODEL'.padEnd(COLUMN_WIDTHS.model)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{' ' + 'TOOL'.padEnd(COLUMN_WIDTHS.tool)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{' ' + 'ELAPSED'.padStart(COLUMN_WIDTHS.elapsed)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{' ' + 'TOKENS'.padStart(COLUMN_WIDTHS.tokens)}</Text>
+        <Text color={theme.colors.columnHeader} bold>{' ' + 'COST'.padStart(COLUMN_WIDTHS.cost)}</Text>
+      </Box>
       {visibleSessions.map((session, si) => {
         const agents = getAgentTree(session).filter(a =>
           showCompleted || a.status !== 'completed'
         )
-        const displayName = session.name ?? session.projectPath ?? session.id.slice(0, 12)
+        const displayName = session.name || session.projectPath || session.id.slice(0, 12)
 
         return (
           <Box key={session.id} flexDirection="column" marginTop={si > 0 ? 1 : 0}>
@@ -56,6 +78,7 @@ export function SessionTree({ sessions, showCompleted }: SessionTreeProps) {
               <Text bold color="white">└ </Text>
               <Text bold color="white">{displayName}</Text>
               <Text dimColor>  [{session.status}]</Text>
+              <Text dimColor>  {formatStartTime(session.startTime)}</Text>
             </Box>
             {/* Agents */}
             {agents.map((agent, ai) => (

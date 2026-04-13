@@ -64,6 +64,10 @@ export function App({ config }: AppProps) {
       await processFile(sessionId, jsonlPath)
     })
 
+    watcher.on('session-expired', (sessionId) => {
+      store.removeSession(sessionId)
+    })
+
     watcher.on('subagent-discovered', async (sessionId, agentId, jsonlPath) => {
       await processSubagent(sessionId, agentId, jsonlPath)
     })

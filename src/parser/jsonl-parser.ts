@@ -63,6 +63,8 @@ export async function parseJsonlIncremental(
   return readJsonlLines(filePath, fromOffset, (line) => parseJsonlLine(line, sessionId, filePath))
 }
 
+export const MAIN_AGENT_ID = 'main'
+
 // Track which sessions we've already emitted a session_start for (per file path)
 const seenCwdByFile = new Map<string, boolean>()
 
@@ -98,14 +100,14 @@ export function parseJsonlLine(
 
       const resultEvents: ParsedEvent[] = []
 
-      // Emit TokenUpdateEvent
+      // Emit TokenUpdateEvent attributed to the main agent
       if (usage) {
         const tokenEvent: TokenUpdateEvent = {
           type: 'token_update',
           sessionId,
           timestamp,
           source: 'jsonl',
-          agentId: null,
+          agentId: MAIN_AGENT_ID,
           model,
           usage: {
             input_tokens: usage.input_tokens ?? 0,
@@ -117,12 +119,15 @@ export function parseJsonlLine(
         resultEvents.push(tokenEvent)
       }
 
-      // Scan content for tool_use entries with name === 'Agent'
+      // Scan content for tool_use entries
       const content = message.content as unknown[] | undefined
       if (Array.isArray(content)) {
         for (const item of content) {
           const block = item as Record<string, unknown>
-          if (block.type === 'tool_use' && block.name === 'Agent') {
+          if (block.type !== 'tool_use') continue
+
+          if (block.name === 'Agent') {
+            // Subagent spawn
             const input = block.input as Record<string, unknown> | undefined
             if (!input) continue
             const agentId = block.id as string | undefined
@@ -140,6 +145,19 @@ export function parseJsonlLine(
               model: (input.model as string | undefined) ?? null,
             }
             resultEvents.push(spawnedEvent)
+          } else {
+            // Main agent tool call
+            const toolUseId = block.id as string | undefined
+            if (!toolUseId) continue
+            resultEvents.push({
+              type: 'tool_use_start',
+              sessionId,
+              timestamp,
+              source: 'jsonl',
+              agentId: MAIN_AGENT_ID,
+              toolName: (block.name as string | undefined) ?? '',
+              toolUseId,
+            })
           }
         }
       }
@@ -166,6 +184,20 @@ export function parseJsonlLine(
           jsonlPath: filePath,
         }
         resultEvents.push(startEvent)
+
+        // Spawn a synthetic main agent to represent the top-level session
+        const mainAgentEvent: AgentSpawnedEvent = {
+          type: 'agent_spawned',
+          sessionId,
+          timestamp,
+          source: 'jsonl',
+          agentId: MAIN_AGENT_ID,
+          parentAgentId: null,
+          agentType: 'claude-code',
+          description: '',
+          model: null,
+        }
+        resultEvents.push(mainAgentEvent)
       }
 
       // Check for agent completion: toolUseResult with agentId
@@ -203,7 +235,7 @@ export function parseJsonlLine(
                 sessionId,
                 timestamp,
                 source: 'jsonl',
-                agentId: null,
+                agentId: MAIN_AGENT_ID,
                 toolName: '',  // tool name not available in tool_result blocks
                 toolUseId,
               }

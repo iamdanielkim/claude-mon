@@ -34,7 +34,8 @@ export class StateStore extends EventEmitter {
   applyEvent(event: ParsedEvent): void {
     switch (event.type) {
       case 'session_start': {
-        if (!this.sessions.has(event.sessionId)) {
+        const existing = this.sessions.get(event.sessionId)
+        if (!existing) {
           const session: Session = {
             id: event.sessionId,
             projectHash: '',
@@ -48,6 +49,12 @@ export class StateStore extends EventEmitter {
             version: event.version,
           }
           this.sessions.set(event.sessionId, session)
+        } else if (!existing.projectPath) {
+          // Race condition: session was pre-created by getOrCreateSession before
+          // session_start was processed — backfill the missing projectPath
+          existing.projectPath = event.projectPath
+          existing.jsonlPath = event.jsonlPath
+          existing.version = event.version
         }
         break
       }
@@ -182,6 +189,13 @@ export class StateStore extends EventEmitter {
     }
 
     this.emit('state-changed')
+  }
+
+  /** Remove a session and its agents from state */
+  removeSession(sessionId: string): void {
+    if (this.sessions.delete(sessionId)) {
+      this.emit('state-changed')
+    }
   }
 
   /** Get a snapshot of all sessions sorted by last activity (most recent first) */

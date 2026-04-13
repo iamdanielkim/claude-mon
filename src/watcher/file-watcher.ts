@@ -9,6 +9,7 @@ import { HookReader } from './hook-reader.ts'
 export interface FileWatcherEvents {
   'session-discovered': (session: DiscoveredSession) => void
   'session-updated': (sessionId: string, jsonlPath: string) => void
+  'session-expired': (sessionId: string) => void
   'subagent-discovered': (sessionId: string, agentId: string, jsonlPath: string, metaPath: string | null) => void
   'subagent-updated': (sessionId: string, agentId: string, jsonlPath: string) => void
   'hook-event': (raw: string) => void
@@ -26,7 +27,7 @@ interface TrackedFile {
   watcher: FSWatcher | null
 }
 
-const TWO_HOURS_MS = 2 * 60 * 60 * 1000
+const SESSION_EXPIRY_MS = 20 * 60 * 1000
 const DEBOUNCE_MS = 100
 const POLL_INTERVAL_MS = 1000
 
@@ -252,7 +253,7 @@ export class FileWatcher extends EventEmitter {
 
         try {
           const fileStat = await stat(jsonlPath)
-          const twoHoursAgo = Date.now() - TWO_HOURS_MS
+          const twoHoursAgo = Date.now() - SESSION_EXPIRY_MS
           if (fileStat.mtimeMs < twoHoursAgo) continue
         } catch {
           continue
@@ -303,7 +304,7 @@ export class FileWatcher extends EventEmitter {
 
   /** Polling fallback: check mtime of tracked files and stale session cleanup */
   private async poll(): Promise<void> {
-    const twoHoursAgo = Date.now() - TWO_HOURS_MS
+    const twoHoursAgo = Date.now() - SESSION_EXPIRY_MS
 
     // Check session files for mtime changes (fallback for systems where fs.watch is unreliable)
     for (const [sessionId, tracked] of this.sessionFiles) {
@@ -313,10 +314,17 @@ export class FileWatcher extends EventEmitter {
           tracked.mtime = fileStat.mtimeMs
           this.emit('session-updated', sessionId, tracked.path)
         }
-        // Close watcher for stale sessions (no activity for 2 hours)
-        if (fileStat.mtimeMs < twoHoursAgo && tracked.watcher) {
-          tracked.watcher.close()
-          tracked.watcher = null
+        // Close watcher and expire stale sessions (no activity for 2 hours)
+        if (fileStat.mtimeMs < twoHoursAgo) {
+          const wasWatching = tracked.watcher !== null
+          if (tracked.watcher) {
+            tracked.watcher.close()
+            tracked.watcher = null
+          }
+          // Only emit once (when we first detect it's stale)
+          if (wasWatching) {
+            this.emit('session-expired', sessionId)
+          }
         }
       } catch {
         // File gone — leave tracked but stop watching

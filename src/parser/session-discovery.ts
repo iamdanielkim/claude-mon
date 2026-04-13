@@ -24,7 +24,7 @@ const USER_AGENT_PATTERN = /^agent-a[a-f0-9]{15,}\.jsonl$/
  */
 export async function discoverSessions(claudeDir: string): Promise<DiscoveredSession[]> {
   const projectsDir = join(claudeDir, 'projects')
-  const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000
+  const expiryThreshold = Date.now() - 20 * 60 * 1000
 
   let projectHashes: string[]
   try {
@@ -53,7 +53,7 @@ export async function discoverSessions(claudeDir: string): Promise<DiscoveredSes
 
       try {
         const fileStat = await stat(jsonlPath)
-        if (fileStat.mtimeMs < twoHoursAgo) continue
+        if (fileStat.mtimeMs < expiryThreshold) continue
       } catch {
         continue
       }
