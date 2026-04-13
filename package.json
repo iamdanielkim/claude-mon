@@ -1,0 +1,18 @@
+{
+  "name": "claude-mon",
+  "version": "0.1.0",
+  "description": "top-like TUI for monitoring Claude Code sessions and agents",
+  "bin": { "claude-mon": "./src/cli.ts" },
+  "type": "module",
+  "dependencies": {
+    "ink": "^5.2.0",
+    "react": "^18.3.0",
+    "@types/react": "^18.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "bun-types": "latest"
+  },
+  "files": ["src/", "README.md"],
+  "engines": { "bun": ">=1.0.0" }
+}
