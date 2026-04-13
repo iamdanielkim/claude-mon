@@ -16,7 +16,7 @@ function formatStartTime(date: Date): string {
   const h = date.getHours().toString().padStart(2, '0')
   const m = date.getMinutes().toString().padStart(2, '0')
   const s = date.getSeconds().toString().padStart(2, '0')
-  return `${yy}${mo}${dd} ${h}:${m}:${s}`
+  return `(${mo}/${dd}/${yy} ${h}:${m}:${s})`
 }
 
 function getAgentTree(session: Session): Agent[] {
@@ -54,17 +54,6 @@ export function SessionTree({ sessions, showCompleted }: SessionTreeProps) {
 
   return (
     <Box flexDirection="column">
-      {/* Column header */}
-      <Box marginBottom={0}>
-        <Text> </Text>
-        <Text color={theme.colors.columnHeader} dimColor>{''.padEnd(COLUMN_WIDTHS.icon)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{'AGENT'.padEnd(COLUMN_WIDTHS.name)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{' ' + 'MODEL'.padEnd(COLUMN_WIDTHS.model)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{' ' + 'TOOL'.padEnd(COLUMN_WIDTHS.tool)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{' ' + 'ELAPSED'.padStart(COLUMN_WIDTHS.elapsed)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{' ' + 'TOKENS'.padStart(COLUMN_WIDTHS.tokens)}</Text>
-        <Text color={theme.colors.columnHeader} bold>{' ' + 'COST'.padStart(COLUMN_WIDTHS.cost)}</Text>
-      </Box>
       {visibleSessions.map((session, si) => {
         const agents = getAgentTree(session).filter(a =>
           showCompleted || a.status !== 'completed'
@@ -77,8 +66,18 @@ export function SessionTree({ sessions, showCompleted }: SessionTreeProps) {
             <Box>
               <Text bold color="white">└ </Text>
               <Text bold color="white">{displayName}</Text>
+              <Text dimColor> {formatStartTime(session.startTime)}</Text>
               <Text dimColor>  [{session.status}]</Text>
-              <Text dimColor>  {formatStartTime(session.startTime)}</Text>
+            </Box>
+            {/* Column header per session — indent matches icon(2) + prefix(2) + treeChar(4) = 8 chars */}
+            <Box>
+              <Text>{'        '}</Text>
+              <Text color={theme.colors.columnHeader} bold>{'AGENT'.padEnd(COLUMN_WIDTHS.name)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'MODEL'.padEnd(COLUMN_WIDTHS.model)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'TOOL'.padEnd(COLUMN_WIDTHS.tool)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'ELAPSED'.padStart(COLUMN_WIDTHS.elapsed)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'TOKENS'.padStart(COLUMN_WIDTHS.tokens)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'COST'.padStart(COLUMN_WIDTHS.cost)}</Text>
             </Box>
             {/* Agents */}
             {agents.map((agent, ai) => (
