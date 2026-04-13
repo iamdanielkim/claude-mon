@@ -4,7 +4,8 @@
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
       "Bash(bunx tsc:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics"
     ]
   }
 }

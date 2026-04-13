@@ -25,6 +25,7 @@ export const COLUMN_WIDTHS = {
   name: 32,
   model: 14,
   tool: 20,
+  created: 8,
   elapsed: 8,
   tokens: 8,
   cost: 8,

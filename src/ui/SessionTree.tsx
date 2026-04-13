@@ -75,6 +75,7 @@ export function SessionTree({ sessions, showCompleted }: SessionTreeProps) {
               <Text color={theme.colors.columnHeader} bold>{'AGENT'.padEnd(COLUMN_WIDTHS.name)}</Text>
               <Text color={theme.colors.columnHeader} bold>{' ' + 'MODEL'.padEnd(COLUMN_WIDTHS.model)}</Text>
               <Text color={theme.colors.columnHeader} bold>{' ' + 'TOOL'.padEnd(COLUMN_WIDTHS.tool)}</Text>
+              <Text color={theme.colors.columnHeader} bold>{' ' + 'CREATED'.padStart(COLUMN_WIDTHS.created)}</Text>
               <Text color={theme.colors.columnHeader} bold>{' ' + 'ELAPSED'.padStart(COLUMN_WIDTHS.elapsed)}</Text>
               <Text color={theme.colors.columnHeader} bold>{' ' + 'TOKENS'.padStart(COLUMN_WIDTHS.tokens)}</Text>
               <Text color={theme.colors.columnHeader} bold>{' ' + 'COST'.padStart(COLUMN_WIDTHS.cost)}</Text>
