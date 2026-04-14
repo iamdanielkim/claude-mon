@@ -1,5 +1,5 @@
 {
-  "name": "claude-mon",
+  "name": "@iamdanielkim/claude-mon",
   "version": "0.9.0",
   "description": "top-like TUI for monitoring Claude Code sessions and agents",
   "bin": {
