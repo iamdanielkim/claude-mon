@@ -11,7 +11,7 @@ interface AgentRowProps {
 }
 
 function formatElapsed(startTime: Date, lastActivityTime: Date, status: Agent['status']): string {
-  const end = status === 'completed' || status === 'error' ? lastActivityTime : new Date()
+  const end = status === 'running' ? new Date() : lastActivityTime
   const ms = end.getTime() - startTime.getTime()
   const s = Math.floor(ms / 1000)
   const m = Math.floor(s / 60)

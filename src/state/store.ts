@@ -23,6 +23,8 @@ function emptyTokenUsage(): TokenUsage {
 export class StateStore extends EventEmitter {
   private sessions: Map<string, Session>
   private config: MonitorConfig
+  // sessionId → FIFO queue of tool_use_ids for unmatched Agent spawns
+  private pendingAgentSpawns = new Map<string, string[]>()
 
   constructor(config: MonitorConfig) {
     super()
@@ -91,6 +93,10 @@ export class StateStore extends EventEmitter {
             depth,
           }
           session.agents.set(event.agentId, agent)
+          // Track for hexId → tool_use_id correlation (Fix 2)
+          const q = this.pendingAgentSpawns.get(event.sessionId) ?? []
+          q.push(event.agentId)
+          this.pendingAgentSpawns.set(event.sessionId, q)
         }
         session.lastActivityTime = event.timestamp
         break
@@ -107,16 +113,20 @@ export class StateStore extends EventEmitter {
           agent.lastActivityTime = event.timestamp
           agent.currentTool = null
 
-          // Update token usage from completion event
-          const usage = event.usage
-          agent.tokens.inputTokens = usage.input_tokens
-          agent.tokens.outputTokens = usage.output_tokens
-          agent.tokens.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0
-          agent.tokens.cacheReadTokens = usage.cache_read_input_tokens ?? 0
-          agent.tokens.totalTokens = event.totalTokens
-          agent.tokens.estimatedCost = agent.model
-            ? calculateCost(agent.model, usage.input_tokens, usage.output_tokens)
-            : null
+          // Only overwrite streaming-accumulated tokens when real data is provided.
+          // Synthetic completion events (from tool_result detection) carry totalTokens:0
+          // to avoid wiping tokens streamed from the subagent JSONL.
+          if (event.totalTokens > 0) {
+            const usage = event.usage
+            agent.tokens.inputTokens = usage.input_tokens
+            agent.tokens.outputTokens = usage.output_tokens
+            agent.tokens.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0
+            agent.tokens.cacheReadTokens = usage.cache_read_input_tokens ?? 0
+            agent.tokens.totalTokens = event.totalTokens
+            agent.tokens.estimatedCost = agent.model
+              ? calculateCost(agent.model, usage.input_tokens, usage.output_tokens)
+              : null
+          }
         }
         session.lastActivityTime = event.timestamp
         break
@@ -194,8 +204,33 @@ export class StateStore extends EventEmitter {
   /** Remove a session and its agents from state */
   removeSession(sessionId: string): void {
     if (this.sessions.delete(sessionId)) {
+      this.pendingAgentSpawns.delete(sessionId)
       this.emit('state-changed')
     }
+  }
+
+  /**
+   * Match a subagent hex ID to a tracked tool_use_id.
+   * Step 1: content match on agentType + description (both non-empty, exact equality).
+   * Step 2: FIFO fallback.
+   * Returns undefined if no match (caller should defer).
+   */
+  matchSubagent(sessionId: string, agentType?: string, description?: string): string | undefined {
+    const session = this.sessions.get(sessionId)
+    const q = this.pendingAgentSpawns.get(sessionId)
+    if (!session || !q?.length) return undefined
+
+    // Step 1: content match
+    if (agentType && description) {
+      const idx = q.findIndex(id => {
+        const a = session.agents.get(id)
+        return a?.agentType === agentType && a?.description === description
+      })
+      if (idx !== -1) return q.splice(idx, 1)[0]
+    }
+
+    // Step 2: FIFO fallback
+    return q.shift()
   }
 
   /** Get a snapshot of all sessions sorted by last activity (most recent first) */

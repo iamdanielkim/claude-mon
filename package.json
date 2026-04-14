@@ -1,8 +1,10 @@
 {
   "name": "claude-mon",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "top-like TUI for monitoring Claude Code sessions and agents",
-  "bin": { "claude-mon": "./src/cli.ts" },
+  "bin": {
+    "claude-mon": "./dist/cli.js"
+  },
   "type": "module",
   "dependencies": {
     "ink": "^5.2.0",
@@ -13,6 +15,23 @@
     "typescript": "^5.4.0",
     "bun-types": "latest"
   },
-  "files": ["src/", "README.md"],
-  "engines": { "bun": ">=1.0.0" }
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "bun ./src/cli.ts",
+    "start": "bun ./dist/cli.js",
+    "build": "rm -rf dist && bun build ./src/cli.ts --outdir ./dist --target node --format esm --packages external",
+    "build:types": "tsc --emitDeclarationOnly --declaration",
+    "pack:test": "bun pm pack --dry-run",
+    "prepublishOnly": "bun run build && bun run build:types",
+    "publish:dry": "bun publish --dry-run",
+    "release": "bun run build && bun run build:types && bun publish"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
 }

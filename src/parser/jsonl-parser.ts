@@ -68,6 +68,9 @@ export const MAIN_AGENT_ID = 'main'
 // Track which sessions we've already emitted a session_start for (per file path)
 const seenCwdByFile = new Map<string, boolean>()
 
+// Track Agent tool_use_ids per file so we can detect agent completion via tool_result
+const agentSpawnIdsByFile = new Map<string, Set<string>>()
+
 /**
  * Parse a single raw JSONL line into zero or more ParsedEvents.
  * A single JSONL line can produce multiple events (e.g., TokenUpdateEvent + AgentSpawnedEvent).
@@ -132,6 +135,12 @@ export function parseJsonlLine(
             if (!input) continue
             const agentId = block.id as string | undefined
             if (!agentId) continue
+
+            // Track this tool_use_id so we can detect completion via tool_result
+            const fileKey = filePath + ':' + sessionId
+            const spawnSet = agentSpawnIdsByFile.get(fileKey) ?? new Set<string>()
+            spawnSet.add(agentId)
+            agentSpawnIdsByFile.set(fileKey, spawnSet)
 
             const spawnedEvent: AgentSpawnedEvent = {
               type: 'agent_spawned',
@@ -200,47 +209,42 @@ export function parseJsonlLine(
         resultEvents.push(mainAgentEvent)
       }
 
-      // Check for agent completion: toolUseResult with agentId
-      const toolUseResult = line.toolUseResult as Record<string, unknown> | undefined
-      if (toolUseResult && typeof toolUseResult.agentId === 'string') {
-        const completedEvent: AgentCompletedEvent = {
-          type: 'agent_completed',
-          sessionId,
-          timestamp,
-          source: 'jsonl',
-          agentId: toolUseResult.agentId as string,
-          agentType: (toolUseResult.agentType as string | undefined) ?? 'unknown',
-          totalTokens: (toolUseResult.totalTokens as number | undefined) ?? 0,
-          totalDurationMs: (toolUseResult.totalDurationMs as number | undefined) ?? 0,
-          totalToolUseCount: (toolUseResult.totalToolUseCount as number | undefined) ?? 0,
-          usage: (toolUseResult.usage as AgentCompletedEvent['usage'] | undefined) ?? {
-            input_tokens: 0,
-            output_tokens: 0,
-          },
-          status: (toolUseResult.status as string | undefined) ?? 'completed',
-        }
-        resultEvents.push(completedEvent)
-      }
-
-      // Check content for tool_result entries → ToolUseEndEvent
+      // Check content for tool_result entries → ToolUseEndEvent + AgentCompletedEvent
+      const spawnIds = agentSpawnIdsByFile.get(fileKey)
       const content = line.content as unknown[] | undefined
       if (Array.isArray(content)) {
         for (const item of content) {
           const block = item as Record<string, unknown>
           if (block.type === 'tool_result') {
             const toolUseId = block.tool_use_id as string | undefined
-            if (toolUseId) {
-              const endEvent: ToolUseEndEvent = {
-                type: 'tool_use_end',
+            if (!toolUseId) continue
+
+            // If this tool_result corresponds to an Agent spawn, emit agent_completed
+            if (spawnIds?.has(toolUseId)) {
+              resultEvents.push({
+                type: 'agent_completed',
                 sessionId,
                 timestamp,
                 source: 'jsonl',
-                agentId: MAIN_AGENT_ID,
-                toolName: '',  // tool name not available in tool_result blocks
-                toolUseId,
-              }
-              resultEvents.push(endEvent)
+                agentId: toolUseId,
+                agentType: 'unknown',
+                totalTokens: 0,      // no token data in tool_result; streaming tokens come from subagent JSONL
+                totalDurationMs: 0,
+                totalToolUseCount: 0,
+                usage: { input_tokens: 0, output_tokens: 0 },
+                status: 'completed',
+              } as AgentCompletedEvent)
             }
+
+            resultEvents.push({
+              type: 'tool_use_end',
+              sessionId,
+              timestamp,
+              source: 'jsonl',
+              agentId: MAIN_AGENT_ID,
+              toolName: '',  // tool name not available in tool_result blocks
+              toolUseId,
+            } as ToolUseEndEvent)
           }
         }
       }
