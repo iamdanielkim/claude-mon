@@ -148,7 +148,7 @@ export function parseJsonlLine(
               timestamp,
               source: 'jsonl',
               agentId,
-              parentAgentId: null,
+              parentAgentId: MAIN_AGENT_ID,
               agentType: (input.subagent_type as string | undefined) ?? 'unknown',
               description: (input.description as string | undefined) ?? '',
               model: (input.model as string | undefined) ?? null,
@@ -211,7 +211,8 @@ export function parseJsonlLine(
 
       // Check content for tool_result entries → ToolUseEndEvent + AgentCompletedEvent
       const spawnIds = agentSpawnIdsByFile.get(fileKey)
-      const content = line.content as unknown[] | undefined
+      const content = (line.message as Record<string, unknown> | undefined)
+        ?.content as unknown[] | undefined
       if (Array.isArray(content)) {
         for (const item of content) {
           const block = item as Record<string, unknown>

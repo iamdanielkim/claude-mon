@@ -42,6 +42,7 @@ export function AgentRow({ agent, isLast, prefix }: AgentRowProps) {
   const iconColor = theme.colors[agent.status] ?? 'white'
 
   const treeChar = isLast ? '└── ' : '├── '
+  const nameWidth = Math.max(8, COLUMN_WIDTHS.name - prefix.length - treeChar.length)
   const shortId = agent.id.slice(-6)
   const agentLabel = agent.agentType
     ? `${agent.agentType.split(':').pop() ?? agent.agentType}:${shortId}`
@@ -58,9 +59,10 @@ export function AgentRow({ agent, isLast, prefix }: AgentRowProps) {
     <Box>
       <Text color={iconColor} dimColor={isDim}>{icon} </Text>
       <Text color={theme.colors.treeLines} dimColor>{prefix}{treeChar}</Text>
-      <Text dimColor={isDim}>{truncate(agentLabel, COLUMN_WIDTHS.name)}</Text>
+      <Text dimColor={isDim}>{truncate(agentLabel, nameWidth)}</Text>
       <Text color={theme.colors.modelName} dimColor={isDim}> {truncate(modelShort, COLUMN_WIDTHS.model)}</Text>
       <Text dimColor={isDim}> {truncate(tool, COLUMN_WIDTHS.tool)}</Text>
+      <Text color={theme.colors[agent.status]} dimColor={isDim}> {agent.status.padEnd(COLUMN_WIDTHS.status)}</Text>
       <Text dimColor={isDim}> {createdTime.padStart(COLUMN_WIDTHS.created)}</Text>
       <Text dimColor={isDim}> {elapsed.padStart(COLUMN_WIDTHS.elapsed)}</Text>
       <Text dimColor={isDim}> {tokens.padStart(COLUMN_WIDTHS.tokens)}</Text>
