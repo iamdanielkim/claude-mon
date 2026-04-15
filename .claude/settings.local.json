@@ -19,7 +19,13 @@
       "Bash(git branch:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(bun --version)",
+      "Bash(git:*)",
+      "Bash(gh api:*)",
+      "Bash(wait)",
+      "Bash(echo \"checkout@v4: $\\(gh api repos/actions/checkout/git/ref/tags/v4 --jq '.object.sha'\\)\")",
+      "Bash(echo \"setup-bun@v2: $\\(gh api repos/oven-sh/setup-bun/git/ref/tags/v2 --jq '.object.sha'\\)\")"
     ]
   }
 }
