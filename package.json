@@ -16,7 +16,8 @@
     "bun-types": "latest"
   },
   "files": [
-    "dist"
+    "dist",
+    "assets"
   ],
   "scripts": {
     "dev": "bun ./src/cli.ts",

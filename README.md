@@ -2,6 +2,8 @@
 
 `top`-like terminal UI for monitoring Claude Code sessions and subagents in real-time.
 
+![claude-mon screenshot](https://raw.githubusercontent.com/iamdanielkim/claude-mon/main/assets/screenshot.png)
+
 ```
 claude-mon                    2 sessions | 4 agents | refresh: 12ms | hooks: inactive
 
