@@ -1,6 +1,6 @@
 {
   "name": "@iamdanielkim/claude-mon",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "top-like TUI for monitoring Claude Code sessions and agents",
   "bin": {
     "claude-mon": "./dist/cli.js"
