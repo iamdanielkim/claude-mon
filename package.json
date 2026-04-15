@@ -5,6 +5,7 @@
   "bin": {
     "claude-mon": "./dist/cli.js"
   },
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "ink": "^5.2.0",
