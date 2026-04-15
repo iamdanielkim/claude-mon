@@ -253,8 +253,21 @@ export class StateStore extends EventEmitter {
     let changed = false
 
     for (const session of this.sessions.values()) {
-      for (const agent of session.agents.values()) {
+      const agents = [...session.agents.values()]
+
+      for (const agent of agents) {
         if (agent.status !== 'running' && agent.status !== 'idle') continue
+
+        // Agent has an in-flight tool call — not idle regardless of elapsed time
+        if (agent.currentToolUseId !== null) continue
+
+        // Agent is waiting for a child subagent — not idle
+        const hasActiveChild = agents.some(
+          a => a.parentAgentId === agent.id &&
+               (a.status === 'running' || a.status === 'idle')
+        )
+        if (hasActiveChild) continue
+
         const idleThreshold = agent.lastActivityTime.getTime() + this.config.maxIdleTime
         if (now > idleThreshold) {
           if (agent.status !== 'idle') {
