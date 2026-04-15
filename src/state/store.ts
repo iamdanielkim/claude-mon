@@ -147,6 +147,8 @@ export class StateStore extends EventEmitter {
           agent.currentToolInput = event.toolInput
           agent.currentToolUseId = event.toolUseId
           agent.lastActivityTime = event.timestamp
+          // Resume from idle — a new tool call means the agent is active again
+          if (agent.status === 'idle') agent.status = 'running'
         }
         session.lastActivityTime = event.timestamp
         break
