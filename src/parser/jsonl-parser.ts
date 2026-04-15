@@ -166,6 +166,9 @@ export function parseJsonlLine(
               agentId: MAIN_AGENT_ID,
               toolName: (block.name as string | undefined) ?? '',
               toolUseId,
+              toolInput: typeof block.input === 'object' && block.input !== null
+                ? block.input as Record<string, unknown>
+                : null,
             })
           }
         }

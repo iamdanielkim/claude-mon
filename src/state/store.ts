@@ -86,6 +86,8 @@ export class StateStore extends EventEmitter {
             agentType: event.agentType,
             description: event.description,
             currentTool: null,
+            currentToolInput: null,
+            currentToolUseId: null,
             status: 'running',
             startTime: event.timestamp,
             lastActivityTime: event.timestamp,
@@ -112,6 +114,8 @@ export class StateStore extends EventEmitter {
           agent.status = status
           agent.lastActivityTime = event.timestamp
           agent.currentTool = null
+          agent.currentToolInput = null
+          agent.currentToolUseId = null
 
           // Only overwrite streaming-accumulated tokens when real data is provided.
           // Synthetic completion events (from tool_result detection) carry totalTokens:0
@@ -140,6 +144,8 @@ export class StateStore extends EventEmitter {
         const agent = session.agents.get(event.agentId)
         if (agent) {
           agent.currentTool = event.toolName
+          agent.currentToolInput = event.toolInput
+          agent.currentToolUseId = event.toolUseId
           agent.lastActivityTime = event.timestamp
         }
         session.lastActivityTime = event.timestamp
@@ -152,9 +158,10 @@ export class StateStore extends EventEmitter {
         if (!session) break
 
         const agent = session.agents.get(event.agentId)
-        if (agent && agent.currentTool !== null) {
-          // Only clear if the toolUseId matches what we'd expect (best effort)
+        if (agent && agent.currentToolUseId === event.toolUseId) {
           agent.currentTool = null
+          agent.currentToolInput = null
+          agent.currentToolUseId = null
           agent.lastActivityTime = event.timestamp
         }
         session.lastActivityTime = event.timestamp
@@ -252,6 +259,9 @@ export class StateStore extends EventEmitter {
         if (now > idleThreshold) {
           if (agent.status !== 'idle') {
             agent.status = 'idle'
+            agent.currentTool = null
+            agent.currentToolInput = null
+            agent.currentToolUseId = null
             changed = true
           }
         }

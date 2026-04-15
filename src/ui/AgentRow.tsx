@@ -36,6 +36,39 @@ function truncate(s: string, len: number): string {
   return s.slice(0, len - 1) + '…'
 }
 
+function formatToolDisplay(name: string | null, input: Record<string, unknown> | null): string {
+  if (!name) return '—'
+
+  // Bash: show the actual command (first line only)
+  if (name === 'Bash') {
+    const cmd = input?.command
+    if (typeof cmd === 'string') {
+      const first = cmd.trim().split('\n')[0]
+      if (first) return first
+    }
+    return 'Bash'
+  }
+
+  // Skill tool: show the actual skill name from input
+  if (name === 'Skill') {
+    const skill = input?.skill
+    return typeof skill === 'string' && skill.length > 0 ? `skill:${skill}` : 'Skill'
+  }
+
+  // MCP tools: mcp__Provider_Name__tool_name → [Provider] tool_name
+  if (name.startsWith('mcp__')) {
+    const parts = name.split('__')
+    if (parts.length >= 3) {
+      const provider = parts[1].replace(/^claude_ai_/, '').replace(/^plugin_/, '')
+      const action = parts.slice(2).join('__')
+      return `[${provider}] ${action}`
+    }
+    return name.replace('mcp__', '')
+  }
+
+  return name
+}
+
 export function AgentRow({ agent, isLast, prefix }: AgentRowProps) {
   const isDim = agent.status === 'completed' || agent.status === 'idle'
   const icon = theme.icons[agent.status] ?? '?'
@@ -49,7 +82,7 @@ export function AgentRow({ agent, isLast, prefix }: AgentRowProps) {
     : shortId
 
   const modelShort = agent.model ? shortenModelName(agent.model) : '...'
-  const tool = agent.currentTool ?? '—'
+  const tool = formatToolDisplay(agent.currentTool, agent.currentToolInput)
   const createdTime = agent.startTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   const elapsed = formatElapsed(agent.startTime, agent.lastActivityTime, agent.status)
   const tokens = formatTokens(agent.tokens.totalTokens)

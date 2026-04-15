@@ -18,6 +18,8 @@ export interface Agent {
   agentType: string       // e.g., "oh-my-claudecode:planner", "Explore"
   description: string
   currentTool: string | null
+  currentToolInput: Record<string, unknown> | null
+  currentToolUseId: string | null
   status: AgentStatus
   startTime: Date
   lastActivityTime: Date
@@ -107,6 +109,7 @@ export interface ToolUseStartEvent extends BaseEvent {
   agentId: string | null
   toolName: string
   toolUseId: string
+  toolInput: Record<string, unknown> | null
 }
 
 export interface ToolUseEndEvent extends BaseEvent {

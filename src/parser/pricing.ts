@@ -11,12 +11,21 @@ const MODEL_PRICING_PREFIXES: ModelPricing[] = [
   { prefix: 'claude-haiku-3-5', inputPer1M: 0.80,  outputPer1M: 4.00  },
 ]
 
+// Short aliases passed via Agent tool's model parameter (e.g. model: "sonnet")
+const MODEL_ALIASES: Record<string, string> = {
+  'opus':   'claude-opus-4',
+  'sonnet': 'claude-sonnet-4',
+  'haiku':  'claude-haiku-4-5',
+}
+
 /**
  * Get pricing for a model. Returns null for unknown/non-Anthropic models.
+ * Handles both full model IDs and short aliases (e.g. "sonnet", "opus").
  */
 export function getModelPricing(model: string): ModelPricing | null {
+  const resolved = MODEL_ALIASES[model] ?? model
   for (const pricing of MODEL_PRICING_PREFIXES) {
-    if (model.startsWith(pricing.prefix)) {
+    if (resolved.startsWith(pricing.prefix)) {
       return pricing
     }
   }
