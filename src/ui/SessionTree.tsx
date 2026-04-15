@@ -39,7 +39,7 @@ function getAgentTree(session: Session): AgentTreeNode[] {
     const children = allAgents
       .filter(a => a.parentAgentId === agent.id)
       .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-    const childPrefix = prefix + (isLast ? '    ' : '│   ')
+    const childPrefix = prefix + (isLast ? '    ' : theme.treeChars.pipe)
     children.forEach((child, i) => visit(child, childPrefix, i === children.length - 1))
   }
 

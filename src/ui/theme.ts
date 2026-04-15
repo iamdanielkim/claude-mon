@@ -1,11 +1,10 @@
 export const theme = {
-  // Status icons
-  icons: {
-    running: '●',
-    idle: '◐',
-    completed: '○',
-    error: '✕',
-  },
+  // Status icons — using ASCII-safe chars to avoid East Asian "Ambiguous" width
+  // symbols like ●/◐/○ render as 2 columns in CJK locales but Ink counts them as 1,
+  // causing cursor drift and garbled output after a few re-renders.
+  icons: { running: '>', idle: '~', completed: '-', error: '!' },
+  // Tree drawing characters
+  treeChars: { branch: '├── ', last: '└── ', pipe: '│   ', noTool: '-' },
   // Colors (ink color names)
   colors: {
     running: 'green',

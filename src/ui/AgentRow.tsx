@@ -37,7 +37,7 @@ function truncate(s: string, len: number): string {
 }
 
 function formatToolDisplay(name: string | null, input: Record<string, unknown> | null): string {
-  if (!name) return '—'
+  if (!name) return theme.treeChars.noTool
 
   // Bash: show the actual command (first line only)
   if (name === 'Bash') {
@@ -74,7 +74,7 @@ export function AgentRow({ agent, isLast, prefix }: AgentRowProps) {
   const icon = theme.icons[agent.status] ?? '?'
   const iconColor = theme.colors[agent.status] ?? 'white'
 
-  const treeChar = isLast ? '└── ' : '├── '
+  const treeChar = isLast ? theme.treeChars.last : theme.treeChars.branch
   const nameWidth = Math.max(8, COLUMN_WIDTHS.name - prefix.length - treeChar.length)
   const shortId = agent.id.slice(-6)
   const agentLabel = agent.agentType
