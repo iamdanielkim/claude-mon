@@ -4,18 +4,7 @@
 
 ![claude-mon screenshot](https://raw.githubusercontent.com/iamdanielkim/claude-mon/main/assets/screenshot.png)
 
-```
-claude-mon                    2 sessions | 4 agents | refresh: 12ms | hooks: inactive
 
-└ my-project
-  ├── ● planner              claude-sonnet-4-6   Bash         2m14s   45.2K   $0.18
-  └── ● executor             claude-opus-4-6     Write        5m01s  128.4K   $2.14
-
-└ other-project
-  └── ● explore              claude-haiku-4-5    Read         0m12s   12.1K    N/A
-
-[q] quit  [c] toggle completed  [h] hooks status     Data: JSONL | completed: shown
-```
 
 ## Features
 
@@ -27,25 +16,6 @@ claude-mon                    2 sessions | 4 agents | refresh: 12ms | hooks: ina
 - Hotkeys: toggle completed agents, quit cleanly
 
 ## Installation
-
-**Option 1: Run directly (no install)**
-
-```bash
-bun run /path/to/claude-mon/src/cli.ts
-```
-
-**Option 2: Global link (run `claude-mon` from anywhere)**
-
-```bash
-git clone https://github.com/your-username/claude-mon.git
-cd claude-mon
-bun install
-bun link
-```
-
-After linking, use `claude-mon` from any terminal.
-
-**Option 3: npx / bunx (once published to npm)**
 
 ```bash
 bunx claude-mon

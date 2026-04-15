@@ -5,7 +5,11 @@
       "Bash(npx tsc:*)",
       "Bash(bunx tsc:*)",
       "Bash(python3:*)",
-      "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics"
+      "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
+      "Bash(bun pm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
     ]
   }
 }
