@@ -14,4 +14,11 @@
 3. Claude Code 세션 이름을 feature-name으로 변경 (`/rename <feature-name>`)
 4. 작업 진행 및 커밋
 5. `gh pr create`로 PR 생성
-6. 머지 후 `git worktree remove .worktrees/<feature-name>`
+6. 머지 후 worktree 정리:
+   ```bash
+   ROOT=$(git rev-parse --show-toplevel)
+   git worktree remove --force $ROOT/.worktrees/<feature-name>
+   rm -rf $ROOT/.worktrees/<feature-name>
+   git branch -d feature/<feature-name>
+   git pull origin main
+   ```
