@@ -11,20 +11,18 @@ reviews:
     drafts: false
     base_branches:
       - main
+  path_filters:
+    - "!dist/**"
+    - "!node_modules/**"
+    - "!*.log"
+    - "!.worktrees/**"
+  path_instructions:
+    - path: "src/**/*.ts"
+      instructions: |
+        TypeScript + React (Ink) 기반 TUI 프로젝트입니다.
+        - Ink 컴포넌트 패턴 및 React hooks 사용 여부 확인
+        - 터미널 렌더링 성능에 영향을 줄 수 있는 불필요한 re-render 주의
+        - ESM 모듈 형식 유지 (type: "module")
 
 chat:
   auto_reply: true
-
-path_filters:
-  - "!dist/**"
-  - "!node_modules/**"
-  - "!*.log"
-  - "!.worktrees/**"
-
-path_instructions:
-  - path: "src/**/*.ts"
-    instructions: |
-      TypeScript + React (Ink) 기반 TUI 프로젝트입니다.
-      - Ink 컴포넌트 패턴 및 React hooks 사용 여부 확인
-      - 터미널 렌더링 성능에 영향을 줄 수 있는 불필요한 re-render 주의
-      - ESM 모듈 형식 유지 (type: "module")
