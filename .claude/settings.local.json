@@ -11,7 +11,16 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "mcp__plugin_oh-my-claudecode_t__state_list_active",
-      "mcp__plugin_oh-my-claudecode_t__state_clear"
+      "mcp__plugin_oh-my-claudecode_t__state_clear",
+      "Bash(npm info:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git -C /Users/danny/projects/claude-mon check-ignore -v .worktrees)",
+      "Bash(git worktree:*)",
+      "Bash(gh pr:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
